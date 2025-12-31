@@ -14,6 +14,14 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    // Companies collection
+    match /companies/{companyId} {
+      // Allow read if authenticated
+      allow read: if isSignedIn();
+      // Allow write (create, update, delete) if authenticated
+      allow write: if isSignedIn();
+    }
+
     // Transfer History collection
     match /transferHistory/{transferId} {
       // Allow read if authenticated

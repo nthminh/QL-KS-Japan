@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Auth from './components/Auth';
 import EngineerList from './components/EngineerList';
 import InvoiceList from './components/InvoiceList';
+import CompanyList from './components/CompanyList';
 import { authService } from './services/authService';
 import './App.css';
 
@@ -65,6 +66,12 @@ function App() {
           Kỹ sư & Tu nghiệp sinh
         </button>
         <button
+          className={`nav-button ${activeTab === 'companies' ? 'active' : ''}`}
+          onClick={() => setActiveTab('companies')}
+        >
+          Công ty
+        </button>
+        <button
           className={`nav-button ${activeTab === 'invoices' ? 'active' : ''}`}
           onClick={() => setActiveTab('invoices')}
         >
@@ -73,7 +80,9 @@ function App() {
       </nav>
 
       <main className="app-main">
-        {activeTab === 'engineers' ? <EngineerList /> : <InvoiceList />}
+        {activeTab === 'engineers' && <EngineerList />}
+        {activeTab === 'companies' && <CompanyList />}
+        {activeTab === 'invoices' && <InvoiceList />}
       </main>
 
       <footer className="app-footer">

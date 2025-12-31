@@ -16,6 +16,7 @@ import { db } from './firebase';
 const ENGINEERS_COLLECTION = 'engineers';
 const INVOICES_COLLECTION = 'invoices';
 const TRANSFER_HISTORY_COLLECTION = 'transferHistory';
+const COMPANIES_COLLECTION = 'companies';
 
 // Engineer operations
 export const engineerService = {
@@ -208,6 +209,65 @@ export const transferHistoryService = {
       return { success: true };
     } catch (error) {
       console.error('Error deleting transfer:', error);
+      throw error;
+    }
+  }
+};
+
+// Company operations
+export const companyService = {
+  // Add a new company
+  async addCompany(companyData) {
+    try {
+      const docRef = await addDoc(collection(db, COMPANIES_COLLECTION), {
+        ...companyData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return { id: docRef.id, success: true };
+    } catch (error) {
+      console.error('Error adding company:', error);
+      throw error;
+    }
+  },
+
+  // Get all companies
+  async getAllCompanies() {
+    try {
+      const q = query(collection(db, COMPANIES_COLLECTION), orderBy('name', 'asc'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting companies:', error);
+      throw error;
+    }
+  },
+
+  // Update a company
+  async updateCompany(id, companyData) {
+    try {
+      const companyRef = doc(db, COMPANIES_COLLECTION, id);
+      await updateDoc(companyRef, {
+        ...companyData,
+        updatedAt: serverTimestamp()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating company:', error);
+      throw error;
+    }
+  },
+
+  // Delete a company
+  async deleteCompany(id) {
+    try {
+      await deleteDoc(doc(db, COMPANIES_COLLECTION, id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting company:', error);
       throw error;
     }
   }

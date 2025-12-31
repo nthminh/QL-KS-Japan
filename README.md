@@ -9,6 +9,7 @@
 - ✅ Tự động tạo tên thư mục Google Drive theo tên và ngày sinh
 - ✅ Chuyển đổi ứng viên giữa các công ty
 - ✅ Theo dõi lịch sử chuyển công ty (có thể chỉnh sửa)
+- ✅ **Quản lý công ty với hỗ trợ tìm kiếm thông tin AI**
 - ✅ Quản lý hóa đơn theo công ty
 - ✅ Lưu trữ dữ liệu trên Firebase Firestore (real-time cloud database)
 - ✅ Hỗ trợ nhiều người dùng cùng lúc
@@ -158,6 +159,18 @@ firebase deploy --only hosting
 7. Click "Lịch sử" để xem lịch sử chuyển công ty của ứng viên
 8. Click "Xóa" để xóa (có xác nhận)
 
+### Quản lý Công ty (MỚI - Có hỗ trợ AI)
+
+1. Click tab "Công ty"
+2. Click "Thêm mới" để thêm công ty mới
+3. Điền thông tin: Tên công ty, Mã số thuế, Địa chỉ, Điện thoại, Website, Email, Người liên hệ, Ghi chú
+4. **Click vào tên công ty** để xem thông tin chi tiết với hỗ trợ AI:
+   - Hệ thống hiển thị thông tin có sẵn trong database
+   - Cung cấp link Google Search để tìm thêm thông tin (địa chỉ, số điện thoại, mã số thuế...)
+   - Gợi ý cập nhật thông tin mới tìm được vào hệ thống
+5. Click "Sửa" để cập nhật thông tin công ty
+6. Click "Xóa" để xóa công ty (có xác nhận)
+
 ### Quản lý Hóa đơn
 
 1. Click tab "Hóa đơn"
@@ -178,6 +191,8 @@ QL-KS-Japan/
 │   │   ├── Auth.css
 │   │   ├── EngineerList.js      # Component quản lý kỹ sư
 │   │   ├── EngineerList.css
+│   │   ├── CompanyList.js       # Component quản lý công ty (MỚI)
+│   │   ├── CompanyList.css
 │   │   ├── InvoiceList.js       # Component quản lý hóa đơn
 │   │   └── InvoiceList.css
 │   ├── config/
@@ -185,8 +200,9 @@ QL-KS-Japan/
 │   ├── services/
 │   │   ├── firebase.js          # Khởi tạo Firebase
 │   │   ├── authService.js       # Service xác thực
-│   │   ├── dataService.js       # Service CRUD dữ liệu
-│   │   └── driveService.js      # Service Google Drive helper
+│   │   ├── dataService.js       # Service CRUD dữ liệu (engineers, companies, invoices, transfers)
+│   │   ├── driveService.js      # Service Google Drive helper
+│   │   └── aiSearchService.js   # Service AI search helper (MỚI)
 │   ├── App.js                   # Component chính
 │   ├── App.css
 │   ├── index.js                 # Entry point
@@ -227,6 +243,22 @@ QL-KS-Japan/
   toCompany: string,      // Công ty mới
   transferDate: string,   // Ngày chuyển (YYYY-MM-DD)
   reason: string,         // Lý do chuyển (optional)
+  createdAt: timestamp,   // Thời gian tạo
+  updatedAt: timestamp    // Thời gian cập nhật
+}
+```
+
+### companies (MỚI)
+```javascript
+{
+  name: string,           // Tên công ty (required)
+  taxId: string,          // Mã số thuế (optional)
+  address: string,        // Địa chỉ (optional)
+  phone: string,          // Số điện thoại (optional)
+  email: string,          // Email (optional)
+  website: string,        // Website (optional)
+  contactPerson: string,  // Người liên hệ (optional)
+  notes: string,          // Ghi chú (optional)
   createdAt: timestamp,   // Thời gian tạo
   updatedAt: timestamp    // Thời gian cập nhật
 }
