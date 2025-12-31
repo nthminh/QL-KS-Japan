@@ -6,6 +6,10 @@
 
 - ✅ Xác thực người dùng với Firebase Authentication
 - ✅ Quản lý danh sách kỹ sư và tu nghiệp sinh
+- ✅ Tự động tạo tên thư mục Google Drive theo tên và ngày sinh
+- ✅ Chuyển đổi ứng viên giữa các công ty
+- ✅ Theo dõi lịch sử chuyển công ty (có thể chỉnh sửa)
+- ✅ **Quản lý công ty với hỗ trợ tìm kiếm thông tin AI**
 - ✅ Quản lý hóa đơn theo công ty
 - ✅ Lưu trữ dữ liệu trên Firebase Firestore (real-time cloud database)
 - ✅ Hỗ trợ nhiều người dùng cùng lúc
@@ -148,9 +152,24 @@ firebase deploy --only hosting
 
 1. Click tab "Kỹ sư & Tu nghiệp sinh"
 2. Click "Thêm mới" để thêm người mới
-3. Điền thông tin: Họ tên, Loại (Kỹ sư/Tu nghiệp sinh), Công ty, Vị trí, Ngày bắt đầu, Email, SĐT
-4. Click "Sửa" để cập nhật thông tin
-5. Click "Xóa" để xóa (có xác nhận)
+3. Điền thông tin: Họ tên, Ngày sinh, Loại (Kỹ sư/Tu nghiệp sinh), Công ty, Vị trí, Ngày bắt đầu, Email, SĐT
+4. Hệ thống sẽ tự động tạo tên thư mục Google Drive dựa trên tên và ngày sinh (định dạng: Tên_YYYYMMDD)
+5. Click "Sửa" để cập nhật thông tin
+6. Click "Chuyển CT" để chuyển ứng viên sang công ty khác và lưu lịch sử
+7. Click "Lịch sử" để xem lịch sử chuyển công ty của ứng viên
+8. Click "Xóa" để xóa (có xác nhận)
+
+### Quản lý Công ty (MỚI - Có hỗ trợ AI)
+
+1. Click tab "Công ty"
+2. Click "Thêm mới" để thêm công ty mới
+3. Điền thông tin: Tên công ty, Mã số thuế, Địa chỉ, Điện thoại, Website, Email, Người liên hệ, Ghi chú
+4. **Click vào tên công ty** để xem thông tin chi tiết với hỗ trợ AI:
+   - Hệ thống hiển thị thông tin có sẵn trong database
+   - Cung cấp link Google Search để tìm thêm thông tin (địa chỉ, số điện thoại, mã số thuế...)
+   - Gợi ý cập nhật thông tin mới tìm được vào hệ thống
+5. Click "Sửa" để cập nhật thông tin công ty
+6. Click "Xóa" để xóa công ty (có xác nhận)
 
 ### Quản lý Hóa đơn
 
@@ -172,6 +191,8 @@ QL-KS-Japan/
 │   │   ├── Auth.css
 │   │   ├── EngineerList.js      # Component quản lý kỹ sư
 │   │   ├── EngineerList.css
+│   │   ├── CompanyList.js       # Component quản lý công ty (MỚI)
+│   │   ├── CompanyList.css
 │   │   ├── InvoiceList.js       # Component quản lý hóa đơn
 │   │   └── InvoiceList.css
 │   ├── config/
@@ -179,7 +200,9 @@ QL-KS-Japan/
 │   ├── services/
 │   │   ├── firebase.js          # Khởi tạo Firebase
 │   │   ├── authService.js       # Service xác thực
-│   │   └── dataService.js       # Service CRUD dữ liệu
+│   │   ├── dataService.js       # Service CRUD dữ liệu (engineers, companies, invoices, transfers)
+│   │   ├── driveService.js      # Service Google Drive helper
+│   │   └── aiSearchService.js   # Service AI search helper (MỚI)
 │   ├── App.js                   # Component chính
 │   ├── App.css
 │   ├── index.js                 # Entry point
@@ -198,12 +221,44 @@ QL-KS-Japan/
 ```javascript
 {
   name: string,           // Họ và tên
+  dateOfBirth: string,    // Ngày sinh (YYYY-MM-DD)
   type: string,           // 'engineer' hoặc 'intern'
   company: string,        // Tên công ty
   position: string,       // Vị trí công việc
   startDate: string,      // Ngày bắt đầu (YYYY-MM-DD)
   email: string,          // Email (optional)
   phone: string,          // Số điện thoại (optional)
+  driveFolderName: string,// Tên thư mục Google Drive (tự động tạo)
+  createdAt: timestamp,   // Thời gian tạo
+  updatedAt: timestamp    // Thời gian cập nhật
+}
+```
+
+### transferHistory
+```javascript
+{
+  engineerId: string,     // ID của kỹ sư/tu nghiệp sinh
+  engineerName: string,   // Tên kỹ sư/tu nghiệp sinh
+  fromCompany: string,    // Công ty cũ
+  toCompany: string,      // Công ty mới
+  transferDate: string,   // Ngày chuyển (YYYY-MM-DD)
+  reason: string,         // Lý do chuyển (optional)
+  createdAt: timestamp,   // Thời gian tạo
+  updatedAt: timestamp    // Thời gian cập nhật
+}
+```
+
+### companies (MỚI)
+```javascript
+{
+  name: string,           // Tên công ty (required)
+  taxId: string,          // Mã số thuế (optional)
+  address: string,        // Địa chỉ (optional)
+  phone: string,          // Số điện thoại (optional)
+  email: string,          // Email (optional)
+  website: string,        // Website (optional)
+  contactPerson: string,  // Người liên hệ (optional)
+  notes: string,          // Ghi chú (optional)
   createdAt: timestamp,   // Thời gian tạo
   updatedAt: timestamp    // Thời gian cập nhật
 }
@@ -254,6 +309,15 @@ Có thể mở rộng ứng dụng với:
 - Thông báo real-time
 - Quản lý nhiều công ty
 - Phân quyền chi tiết (Admin, User, Viewer)
+- Tích hợp API Google Drive để tự động tạo thư mục
+
+## Google Drive Integration
+
+Ứng dụng hiện tại hỗ trợ tạo tên thư mục tự động cho ứng viên dựa trên tên và ngày sinh. Thư mục sẽ được tạo với định dạng: `Tên_YYYYMMDD`
+
+Link Google Drive chung: https://drive.google.com/drive/folders/11XtTyW0H15tleBZTNiDVOVhLJJERxFv6?usp=drive_link
+
+**Lưu ý**: Hiện tại thư mục cần được tạo thủ công trong Google Drive. Tính năng tự động tạo thư mục qua API có thể được phát triển trong tương lai.
 
 ## License
 

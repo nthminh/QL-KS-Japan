@@ -1,4 +1,19 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "transferHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "engineerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "transferDate",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

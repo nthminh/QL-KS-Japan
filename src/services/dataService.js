@@ -7,6 +7,7 @@ import {
   getDocs, 
   query, 
   orderBy,
+  where,
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -14,6 +15,8 @@ import { db } from './firebase';
 // Collection names
 const ENGINEERS_COLLECTION = 'engineers';
 const INVOICES_COLLECTION = 'invoices';
+const TRANSFER_HISTORY_COLLECTION = 'transferHistory';
+const COMPANIES_COLLECTION = 'companies';
 
 // Engineer operations
 export const engineerService = {
@@ -128,6 +131,143 @@ export const invoiceService = {
       return { success: true };
     } catch (error) {
       console.error('Error deleting invoice:', error);
+      throw error;
+    }
+  }
+};
+
+// Transfer History operations
+export const transferHistoryService = {
+  // Add a transfer record
+  async addTransfer(transferData) {
+    try {
+      const docRef = await addDoc(collection(db, TRANSFER_HISTORY_COLLECTION), {
+        ...transferData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return { id: docRef.id, success: true };
+    } catch (error) {
+      console.error('Error adding transfer:', error);
+      throw error;
+    }
+  },
+
+  // Get transfer history for an engineer
+  async getTransfersByEngineerId(engineerId) {
+    try {
+      const q = query(
+        collection(db, TRANSFER_HISTORY_COLLECTION),
+        where('engineerId', '==', engineerId),
+        orderBy('transferDate', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting transfers:', error);
+      throw error;
+    }
+  },
+
+  // Get all transfer history
+  async getAllTransfers() {
+    try {
+      const q = query(collection(db, TRANSFER_HISTORY_COLLECTION), orderBy('transferDate', 'desc'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting all transfers:', error);
+      throw error;
+    }
+  },
+
+  // Update a transfer record
+  async updateTransfer(id, transferData) {
+    try {
+      const transferRef = doc(db, TRANSFER_HISTORY_COLLECTION, id);
+      await updateDoc(transferRef, {
+        ...transferData,
+        updatedAt: serverTimestamp()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating transfer:', error);
+      throw error;
+    }
+  },
+
+  // Delete a transfer record
+  async deleteTransfer(id) {
+    try {
+      await deleteDoc(doc(db, TRANSFER_HISTORY_COLLECTION, id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting transfer:', error);
+      throw error;
+    }
+  }
+};
+
+// Company operations
+export const companyService = {
+  // Add a new company
+  async addCompany(companyData) {
+    try {
+      const docRef = await addDoc(collection(db, COMPANIES_COLLECTION), {
+        ...companyData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return { id: docRef.id, success: true };
+    } catch (error) {
+      console.error('Error adding company:', error);
+      throw error;
+    }
+  },
+
+  // Get all companies
+  async getAllCompanies() {
+    try {
+      const q = query(collection(db, COMPANIES_COLLECTION), orderBy('name', 'asc'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('Error getting companies:', error);
+      throw error;
+    }
+  },
+
+  // Update a company
+  async updateCompany(id, companyData) {
+    try {
+      const companyRef = doc(db, COMPANIES_COLLECTION, id);
+      await updateDoc(companyRef, {
+        ...companyData,
+        updatedAt: serverTimestamp()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating company:', error);
+      throw error;
+    }
+  },
+
+  // Delete a company
+  async deleteCompany(id) {
+    try {
+      await deleteDoc(doc(db, COMPANIES_COLLECTION, id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting company:', error);
       throw error;
     }
   }
