@@ -20,8 +20,10 @@ class CLI:
         # Try to load existing data
         try:
             self.system.load_from_file()
-        except:
-            print("Starting with empty system.")
+        except FileNotFoundError:
+            print("No existing data file found. Starting with empty system.")
+        except Exception as e:
+            print(f"Error loading data: {e}. Starting with empty system.")
     
     def display_menu(self):
         """Display the main menu."""
@@ -54,8 +56,11 @@ class CLI:
                     return float(value)
                 elif input_type == datetime:
                     return datetime.strptime(value, "%Y-%m-%d")
-            except (ValueError, KeyboardInterrupt):
+            except ValueError:
                 print(f"Invalid input. Please try again.")
+            except (EOFError, KeyboardInterrupt):
+                # Allow user to exit gracefully with Ctrl+C or Ctrl+D
+                raise
     
     def add_company(self):
         """Add a new company."""

@@ -60,16 +60,41 @@ class Employee:
     @classmethod
     def from_dict(cls, data):
         """Create employee from dictionary."""
-        return cls(
-            employee_id=data['employee_id'],
-            name=data['name'],
-            employee_type=EmployeeType(data['employee_type']),
-            company_name=data['company_name'],
-            start_date=datetime.fromisoformat(data['start_date']),
-            end_date=datetime.fromisoformat(data['end_date']) if data['end_date'] else None,
-            management_type=ManagementType(data['management_type']),
-            monthly_cost=data['monthly_cost']
-        )
+        employee_type = EmployeeType(data['employee_type'])
+        
+        # Create appropriate subclass based on employee type
+        if employee_type == EmployeeType.ENGINEER:
+            return Engineer(
+                employee_id=data['employee_id'],
+                name=data['name'],
+                company_name=data['company_name'],
+                start_date=datetime.fromisoformat(data['start_date']),
+                end_date=datetime.fromisoformat(data['end_date']) if data['end_date'] else None,
+                management_type=ManagementType(data['management_type']),
+                monthly_cost=data['monthly_cost']
+            )
+        elif employee_type == EmployeeType.TRAINEE:
+            return Trainee(
+                employee_id=data['employee_id'],
+                name=data['name'],
+                company_name=data['company_name'],
+                start_date=datetime.fromisoformat(data['start_date']),
+                expected_end_date=datetime.fromisoformat(data['end_date']),
+                management_type=ManagementType(data['management_type']),
+                monthly_cost=data['monthly_cost']
+            )
+        else:
+            # Fallback to base Employee class for unknown types
+            return cls(
+                employee_id=data['employee_id'],
+                name=data['name'],
+                employee_type=employee_type,
+                company_name=data['company_name'],
+                start_date=datetime.fromisoformat(data['start_date']),
+                end_date=datetime.fromisoformat(data['end_date']) if data['end_date'] else None,
+                management_type=ManagementType(data['management_type']),
+                monthly_cost=data['monthly_cost']
+            )
     
     def __str__(self):
         end_str = f" - End: {self.end_date.strftime('%Y-%m-%d')}" if self.end_date else " - Ongoing"
@@ -129,7 +154,6 @@ class Trainee(Employee):
             management_type=management_type,
             monthly_cost=monthly_cost
         )
-        self.expected_end_date = expected_end_date
 
 
 class Company:
